@@ -2,7 +2,6 @@ import mongoose from "mongoose"
 import dotenv from "dotenv"
 dotenv.config()
 
-process.loadEnvFile()
 
 const URI_DB = process.env.URI_DB
 
@@ -17,7 +16,7 @@ interface IProduct {
     stock: number,
 }
 
-const productSchema = new mongoose.Schema<IProduct>({
+const booksSchema = new mongoose.Schema<IProduct>({
     title: {
         type: String,},
     author: {
@@ -34,7 +33,7 @@ const handleError = (error: Error) => {
     }
 }
 
-const Product = mongoose.model<IProduct>("Product", productSchema)
+const Book = mongoose.model<IProduct>("Book", booksSchema) 
 
 const connectDb = async (URI: string) => {
     try {
@@ -52,12 +51,12 @@ const isValidId = (id: string) => {
 const getBooks = async (id?: string) => {
     try {
         if (!id) {
-            return await Product.find()
+            return await Book.find()
         }
         if (!isValidId(id)) {
             throw new Error("Invalid ID format")
         }
-        const foundBook = await Product.findById(id)
+        const foundBook = await Book    .findById(id)
         if (!foundBook) {
             throw new Error("Book not found")
         }
@@ -68,18 +67,57 @@ const getBooks = async (id?: string) => {
     }
 
 }
-const createBook = async (
-    bookData: Partial<IProduct> = {}
-) => {
+const createBook = async (bookData: string[]) => {
     try {
         const newBook: IProduct = {
-            title: bookData.title ?? "Book title",
-            author: bookData.author ?? "Unknown author",
-            price: bookData.price ?? 0,
-            stock: bookData.stock ?? 0
+            title: "Book Title",
+            author: "Unknown author",
+            price: 0,
+            stock: 0
         }
 
-        const createdBook = await Product.create(newBook)
+        for (const data of bookData) {
+            const [key, value] = data.split("=")
+
+            if (!value) {
+                continue
+            }
+
+            switch (key) {
+                case "title":
+                    newBook.title = value
+                    break
+
+                case "author":
+                    newBook.author = value
+                    break
+
+                case "price":
+                    newBook.price = Number(value)
+                    break
+
+                case "stock":
+                    newBook.stock = Number(value)
+                    break
+            }
+        }
+
+        if (newBook.title === "Book Title") {
+            console.error("El campo 'title' es obligatorio")
+            return
+        }
+
+        if (Number.isNaN(newBook.price)) {
+            console.error("El campo 'price' debe ser un número")
+            return
+        }
+
+        if (Number.isNaN(newBook.stock)) {
+            console.error("El campo 'stock' debe ser un número")
+            return
+        }
+
+        const createdBook = await Book.create(newBook)
 
         return createdBook
 
@@ -93,7 +131,7 @@ const createBook = async (
         if (!isValidId(id)) {
             throw new Error("Invalid ID format")
         }
-        const updatedBook = await Product.findByIdAndUpdate(id, bookData, { new: true })
+        const updatedBook = await Book.findByIdAndUpdate(id, bookData, { new: true })
         if (!updatedBook) {
             throw new Error("Book not found")
         }
@@ -103,13 +141,44 @@ const createBook = async (
         throw error
     }
 }
+const parseBookData = (bookData: string[]): Partial<IProduct> => {
+    const updates: Partial<IProduct> = {}
+
+    for (const data of bookData) {
+        const [key, value] = data.split("=")
+
+        if (!value) {
+            continue
+        }
+
+        switch (key) {
+            case "title":
+                updates.title = value
+                break
+
+            case "author":
+                updates.author = value
+                break
+
+            case "price":
+                updates.price = Number(value)
+                break
+
+            case "stock":
+                updates.stock = Number(value)
+                break
+        }
+    }
+
+    return updates
+}
 
 const deleteBook = async (id: string ) => {
     try {
         if (!isValidId(id)) {
             throw new Error("Invalid ID format")
         }
-        const deletedBook = await Product.findByIdAndDelete(id)
+        const deletedBook = await Book.findByIdAndDelete(id)
         if (!deletedBook) {
             throw new Error("Book not found")
         }
@@ -119,6 +188,8 @@ const deleteBook = async (id: string ) => {
         throw error
     }
 }
+
+
 
 const main = async () => {
     const args = process.argv.slice(2)
@@ -140,6 +211,42 @@ const main = async () => {
                 console.log(book)
                 break
             case "create":
+                const bookData = args.slice(1)
+                const createdBook = await createBook(bookData)
+                console.log(createdBook)
+                break
+            case "update": {
+    const idToUpdate = args[1]
+
+    if (!idToUpdate) {
+        console.error("Tenés que proporcionar un ID")
+        break
+    }
+
+            const updateData = parseBookData(args.slice(2))
+
+            const updatedBook = await updateBook(
+                idToUpdate,
+                updateData
+            )
+
+            console.log(updatedBook)
+
+            break
+}
+            case "delete": {
+                const idToDelete = args[1]
+
+                    if (!idToDelete) {
+                        console.error("Tenés que proporcionar un ID")
+                        break
+                    }
+
+                const deletedBook = await deleteBook(idToDelete)
+                console.log(deletedBook)
+
+            break
+}
 
             
         }
