@@ -85,3 +85,19 @@ const updateBook = async (id: string, bookData: Partial<IProduct>) => {
     }
 }
 
+const deleteBook = async (id: string) => {
+    try {
+        if (!isValidId(id)) {
+            throw new Error("Invalid ID format")
+        }
+        const deletedBook = await Product.findByIdAndDelete(id)
+        if (!deletedBook) {
+            throw new Error("Book not found")
+        }
+        return deletedBook
+    } catch (error) {
+        console.error("Error al eliminar libro:", error)
+        throw error
+    }
+}
+
