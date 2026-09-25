@@ -1,4 +1,6 @@
 import mongoose from "mongoose"
+import dotenv from "dotenv"
+dotenv.config()
 
 process.loadEnvFile()
 
@@ -9,22 +11,28 @@ if (!URI_DB) {
     process.exit(1)
 }
 interface IProduct {
-    titulo: string,
-    autor: string,
-    precio: number,
+    title: string,
+    author: string,
+    price: number,
     stock: number,
 }
 
 const productSchema = new mongoose.Schema<IProduct>({
-    titulo: {
+    title: {
         type: String,},
-    autor: {
+    author: {
         type: String,},
-    precio: {
+    price: {
         type: Number,},
     stock: {
         type: Number,}
 })
+
+const handleError = (error: Error) => {
+    if (error.name === "CastError") {
+        console.error("ID inválido:", error.message)
+    }
+}
 
 const Product = mongoose.model<IProduct>("Product", productSchema)
 
@@ -60,16 +68,27 @@ const getBooks = async (id?: string) => {
     }
 
 }
-const createBook = async (bookData: IProduct) => {
+const createBook = async (
+    bookData: Partial<IProduct> = {}
+) => {
     try {
-        const newBook = new Product(bookData)
-        return await newBook.save()
+        const newBook: IProduct = {
+            title: bookData.title ?? "Book title",
+            author: bookData.author ?? "Unknown author",
+            price: bookData.price ?? 0,
+            stock: bookData.stock ?? 0
+        }
+
+        const createdBook = await Product.create(newBook)
+
+        return createdBook
+
     } catch (error) {
-        console.error("Error al crear libro:", error)
-        throw error
+        const e = error as Error
+        return handleError(e)
     }
 }
-const updateBook = async (id: string, bookData: Partial<IProduct>) => {
+    const updateBook = async (id: string, bookData: Partial<IProduct> | undefined) => {
     try {
         if (!isValidId(id)) {
             throw new Error("Invalid ID format")
@@ -85,7 +104,7 @@ const updateBook = async (id: string, bookData: Partial<IProduct>) => {
     }
 }
 
-const deleteBook = async (id: string) => {
+const deleteBook = async (id: string ) => {
     try {
         if (!isValidId(id)) {
             throw new Error("Invalid ID format")
@@ -101,3 +120,33 @@ const deleteBook = async (id: string) => {
     }
 }
 
+const main = async () => {
+    const args = process.argv.slice(2)
+    const action = args[0]
+
+    await connectDb(URI_DB)
+
+    switch (action) {
+            case "info":
+                console.log("Comandos disponibles: readAll, readOne <id>, create, update <id> {}, delete <id>")
+                break
+            case "readAll":
+                const allBooks = await getBooks()
+                console.log(allBooks)
+                break
+            case "readOne":
+                const idToRead = args[1]
+                const book = await getBooks(idToRead)
+                console.log(book)
+                break
+            case "create":
+
+            
+        }
+        await mongoose.disconnect()
+            process.exit(0)
+
+            
+}
+    
+main()
