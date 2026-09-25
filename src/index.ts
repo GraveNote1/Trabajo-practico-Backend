@@ -29,7 +29,7 @@ const booksSchema = new mongoose.Schema<IProduct>({
 
 const handleError = (error: Error) => {
     if (error.name === "CastError") {
-        console.error("ID inválido:", error.message)
+        console.error("Invalid ID:", error.message)
     }
 }
 
@@ -41,7 +41,7 @@ const connectDb = async (URI: string) => {
         
         } 
     catch (error) {
-        console.error("Error al conectar a MongoDB:", error)
+        console.error("Error while trying to connect to MongoDB:", error)
         process.exit(1)
     }
 }
