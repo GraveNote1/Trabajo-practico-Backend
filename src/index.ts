@@ -62,7 +62,7 @@ const getBooks = async (id?: string) => {
         }
         return foundBook
     } catch (error) {
-        console.error("Error al obtener libros:", error)
+        console.error("Error while trying to fetch books:", error)
         throw error
     }
 
@@ -103,17 +103,17 @@ const createBook = async (bookData: string[]) => {
         }
 
         if (newBook.title === "Book Title") {
-            console.error("El campo 'title' es obligatorio")
+            console.error("The 'title' field is required")
             return
         }
 
         if (Number.isNaN(newBook.price)) {
-            console.error("El campo 'price' debe ser un número")
+            console.error("The 'price' field must be a number")
             return
         }
 
         if (Number.isNaN(newBook.stock)) {
-            console.error("El campo 'stock' debe ser un número")
+            console.error("The 'stock' field must be a number")
             return
         }
 
@@ -137,7 +137,7 @@ const createBook = async (bookData: string[]) => {
         }
         return updatedBook
     } catch (error) {
-        console.error("Error al actualizar libro:", error)
+        console.error("Error while trying to update book:", error)
         throw error
     }
 }
@@ -184,7 +184,7 @@ const deleteBook = async (id: string ) => {
         }
         return deletedBook
     } catch (error) {
-        console.error("Error al eliminar libro:", error)
+        console.error("Error while trying to delete book:", error)
         throw error
     }
 }
@@ -199,7 +199,7 @@ const main = async () => {
 
     switch (action) {
             case "info":
-                console.log("Comandos disponibles: readAll, readOne <id>, create, update <id> {}, delete <id>")
+                console.log("Available commands: readAll, readOne <id>, create, update <id> {}, delete <id>")
                 break
             case "readAll":
                 const allBooks = await getBooks()
@@ -219,7 +219,7 @@ const main = async () => {
     const idToUpdate = args[1]
 
     if (!idToUpdate) {
-        console.error("Tenés que proporcionar un ID")
+        console.error("You must provide an ID")
         break
     }
 
@@ -238,7 +238,7 @@ const main = async () => {
                 const idToDelete = args[1]
 
                     if (!idToDelete) {
-                        console.error("Tenés que proporcionar un ID")
+                        console.error("You must provide an ID")
                         break
                     }
 
